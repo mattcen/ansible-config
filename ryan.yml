@@ -9,11 +9,14 @@
         dest: /etc/motd
         content: "{{ motd_warning }}"
 
-    - name: configure firewall
-      copy: src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4
-      copy: src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6
     - name: install iptables-persistent
       apt: pkg=iptables-persistent state=latest
+    - name: create firwall config dir
+      file: path=/etc/iptables state=directory mode=0755 owner=root
+    - name: copy in ipv4 firewall rule files
+      copy: src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
+    - name: copy in ipv6 firewall rule files
+      copy: src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
     - name: restart iptables-persistent
       service:
         name: iptables-persistent
