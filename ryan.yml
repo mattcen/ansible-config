@@ -1,0 +1,23 @@
+---
+- hosts: ryan.cengia.id.au
+  user: root
+  vars:
+    motd_warning: "WARNING: You are connected to ryan.cengia.id.au. Unauthorised access is prohibited!\n"
+  tasks:
+    - name: setup a MOTD
+      copy:
+        dest: /etc/motd
+        content: "{{ motd_warning }}"
+
+    - name: configure firewall
+      copy: src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4
+      copy: src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6
+    - name: install iptables-persistent
+      apt: pkg=iptables-persistent state=latest
+    - name: restart iptables-persistent
+      service:
+        name: iptables-persistent
+        state: restarted
+
+    - name: install postfix
+      apt: pkg=postfix state=latest
