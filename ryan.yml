@@ -32,10 +32,23 @@
     - name: install postfix
       apt: pkg=postfix state=latest
 
+    - name: Install python-augeas
+      apt: pkg=python-augeas state=latest
+
+    - name: Lock down SSH
+      augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
+      notify: restart openssh-server
+
+
   handlers:
     - name: restart iptables-persistent
       service:
         name: iptables-persistent
+        state: restarted
+
+    - name: restart openssh-server
+      service:
+        name: openssh-sever
         state: restarted
 
     - name: etckeeper post-commit
