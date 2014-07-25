@@ -14,9 +14,16 @@
     - name: create firwall config dir
       file: path=/etc/iptables state=directory mode=0755 owner=root
     - name: copy in ipv4 firewall rule files
-      copy: src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
+      action: copy src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
+      notify:
+        - restart iptables-persistent
+        - etckeeper post-commit
     - name: copy in ipv6 firewall rule files
-      copy: src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
+      action: copy src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
+      notify:
+        - restart iptables-persistent
+
+  handlers:
     - name: restart iptables-persistent
       service:
         name: iptables-persistent
