@@ -14,6 +14,12 @@
         dest: /etc/motd
         content: "{{ motd_warning }}"
 
+    - name: Update APT package cache
+      apt: update_cache=yes
+
+    - name: Upgrade APT to the lastest packages
+      apt: upgrade=safe
+
     - name: install iptables-persistent
       apt: pkg=iptables-persistent state=latest
 
