@@ -3,6 +3,7 @@
   user: root
   vars:
     motd_warning: "WARNING: You are connected to ryan.cengia.id.au. Unauthorised access is prohibited!\n"
+
   tasks:
 
 #    - name: etckeeper pre-commit
@@ -15,14 +16,17 @@
 
     - name: install iptables-persistent
       apt: pkg=iptables-persistent state=latest
+
     - name: create firwall config dir
       file: path=/etc/iptables state=directory mode=0755 owner=root
       notify: etckeeper post-commit
+
     - name: copy in ipv4 firewall rule files
       action: copy src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
       notify:
         - restart iptables-persistent
         - etckeeper post-commit
+
     - name: copy in ipv6 firewall rule files
       action: copy src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
       notify:
@@ -41,6 +45,7 @@
 
 
   handlers:
+
     - name: restart iptables-persistent
       service:
         name: iptables-persistent
