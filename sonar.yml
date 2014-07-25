@@ -1,0 +1,16 @@
+---
+- hosts: sonar.cyber
+  user: root
+  vars:
+    motd_warning: "WARNING: You are connected to {{inventory_hostname}}. Unauthorised access is prohibited!\n"
+
+  tasks:
+
+    - name: Update APT package cache
+      apt: update_cache=yes
+
+    - name: Install python-augeas
+      apt: pkg=python-augeas state=latest
+
+    - name: Lock down SSH
+      augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
