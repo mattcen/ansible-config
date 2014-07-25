@@ -4,6 +4,10 @@
   vars:
     motd_warning: "WARNING: You are connected to ryan.cengia.id.au. Unauthorised access is prohibited!\n"
   tasks:
+
+#    - name: etckeeper pre-commit
+#      command: etckeeper commit "Pre-Ansible Changes"
+
     - name: setup a MOTD
       copy:
         dest: /etc/motd
@@ -13,6 +17,7 @@
       apt: pkg=iptables-persistent state=latest
     - name: create firwall config dir
       file: path=/etc/iptables state=directory mode=0755 owner=root
+      notify: etckeeper post-commit
     - name: copy in ipv4 firewall rule files
       action: copy src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
       notify:
@@ -22,6 +27,7 @@
       action: copy src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
       notify:
         - restart iptables-persistent
+        - etckeeper post-commit
 
     - name: install postfix
       apt: pkg=postfix state=latest
@@ -32,6 +38,8 @@
         name: iptables-persistent
         state: restarted
 
+    - name: etckeeper post-commit
+      command: etckeeper commit "Post-Ansible Changes"
 
 # sudo augtool -s set /files/etc/postfix/main.cf/relayhost '[cengia.id.au]:1025'
 # ( x=$(augtool match /files/etc/hosts/\*/ipaddr 127.0.0.1); sudo augtool -s set "${x%/*}"/canonical localhost.localdomain; sudo augtool -s set "${x%/*}"/alias localhost; )
