@@ -59,7 +59,7 @@ COMMIT
 ## YOUR RULES GO HERE.  Below is a simple example: a firewalling
 ## router and SSH gateway that also serves DHCP/DNS/NTP to the LAN,
 ## with a web server "www" and a mail server "mail" behind it.
--A INPUT -p tcp --dport ssh -j ACCEPT
+-A INPUT -p tcp -m multiport --dports ssh,smtp -j ACCEPT
 #-A INPUT -i lan -p udp -m multiport --dports bootps,domain,ntp -j ACCEPT
 #-A FORWARD -d mail -p tcp -m multiport --dports smtp,submission,imaps -j ACCEPT
 #-A FORWARD -d www  -p tcp -m multiport --dports http,https            -j ACCEPT

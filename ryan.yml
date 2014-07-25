@@ -23,11 +23,18 @@
       notify:
         - restart iptables-persistent
 
+    - name: install postfix
+      apt: pkg=postfix state=latest
+
   handlers:
     - name: restart iptables-persistent
       service:
         name: iptables-persistent
         state: restarted
 
-    - name: install postfix
-      apt: pkg=postfix state=latest
+
+# sudo augtool -s set /files/etc/postfix/main.cf/relayhost '[cengia.id.au]:1025'
+# ( x=$(augtool match /files/etc/hosts/\*/ipaddr 127.0.0.1); sudo augtool -s set "${x%/*}"/canonical localhost.localdomain; sudo augtool -s set "${x%/*}"/alias localhost; )
+# sudo augtool -s set /files/etc/postfix/main.cf/relay_domains cengia.id.au
+# sudo augtool -s set /files/etc/postfix/main.cf/mydestination "'ryan.cengia.id.au, localhost.localdomain, localhost'"
+# sudo augtool -s set /files/etc/postfix/main.cf/recipient_delimiter -
