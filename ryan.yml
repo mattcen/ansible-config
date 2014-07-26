@@ -17,8 +17,13 @@
     - name: Update APT package cache
       apt: update_cache=yes
 
-    - name: Upgrade APT to the lastest packages
-      apt: upgrade=safe
+    #- name: Upgrade APT to the lastest packages
+    #  apt: upgrade=safe
+
+    - name: Install python-augeas
+      apt: pkg=python-augeas state=latest
+
+    # Firewall
 
     - name: install iptables-persistent
       apt: pkg=iptables-persistent state=latest
@@ -39,11 +44,7 @@
         - restart iptables-persistent
         - etckeeper post-commit
 
-    - name: install postfix
-      apt: pkg=postfix state=latest
-
-    - name: Install python-augeas
-      apt: pkg=python-augeas state=latest
+    # SSH
 
     - name: Lock down SSH
       augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
