@@ -1,0 +1,3 @@
+[submodule "library/ansible-augeas"]
+	path = library/ansible-augeas
+	url = https://github.com/paluh/ansible-augeas.git
