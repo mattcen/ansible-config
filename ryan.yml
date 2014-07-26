@@ -9,10 +9,7 @@
     #- name: etckeeper pre-commit
     #  command: etckeeper commit "Pre-Ansible Changes"
 
-    - name: Setup a MOTD
-      copy:
-        dest: /etc/motd
-        content: "{{ motd_warning }}"
+    - include: roles/common/tasks/set_motd.yml motd_warning={{motd_warning}}
 
     - name: Update APT package cache
       apt: update_cache=yes
@@ -56,7 +53,7 @@
     # Postfix
 
     # Correctly set localhost entry in /etc/hosts
-    - include: roles/common/localhost_hostname.yml
+    - include: roles/common/tasks/localhost_hostname.yml
 
     - name: install postfix
       apt: pkg=postfix state=latest
