@@ -1,0 +1,10 @@
+---
+# Note: This task depends on https://github.com/paluh/ansible-augeas and
+# the python-augeas bindings
+- name: Find localhost entry in hosts file
+  augeas: command="match" path="/files/etc/hosts/*/ipaddr[.=\"127.0.0.1\"]"
+  register: localhost_entry
+- name: Set localhost FQDN entry correctly in hosts file
+  augeas: command="set" path="{{localhost_entry.result[0].label}}/../canonical" value="localhost.localdomain"
+- name: Set localhost alias entry correctly in hosts file
+  augeas: command="set" path="{{localhost_entry.result[0].label}}/../alias" value="localhost"

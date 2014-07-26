@@ -14,3 +14,5 @@
 
     - name: Lock down SSH
       augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
+
+    - include: roles/common/localhost_hostname.yml
