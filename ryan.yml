@@ -6,9 +6,6 @@
 
   tasks:
 
-    #- name: etckeeper pre-commit
-    #  command: etckeeper commit "Pre-Ansible Changes"
-
     - include: roles/common/tasks/set_motd.yml motd_warning={{motd_warning}}
 
     - name: Update APT package cache
@@ -30,19 +27,14 @@
 
     - name: Create firwall config dir
       file: path=/etc/iptables state=directory mode=0755 owner=root
-      notify: etckeeper post-commit
 
     - name: Copy in ipv4 firewall rule files
       action: copy src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
-      notify:
-        - restart iptables-persistent
-        - etckeeper post-commit
+      notify: restart iptables-persistent
 
     - name: Copy in ipv6 firewall rule files
       action: copy src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
-      notify:
-        - restart iptables-persistent
-        - etckeeper post-commit
+      notify: restart iptables-persistent
 
     # SSH
 
@@ -86,9 +78,6 @@
       service:
         name: openssh-sever
         state: restarted
-
-    - name: etckeeper post-commit
-      command: etckeeper commit "Post-Ansible Changes"
 
     - name: reload postfix
       service:
