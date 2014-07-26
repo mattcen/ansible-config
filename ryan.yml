@@ -20,6 +20,9 @@
     #- name: Upgrade APT to the lastest packages
     #  apt: upgrade=safe
 
+    - name: Install unattended-upgrades
+      apt: pkg=unattended-upgrades state=present
+
     - name: Install python-augeas
       apt: pkg=python-augeas state=latest
 
