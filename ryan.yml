@@ -55,16 +55,28 @@
 
     # Postfix
 
-    - name: install postfix
-      apt: pkg=postfix state=latest
-
     # Correctly set localhost entry in /etc/hosts
     - include: roles/common/localhost_hostname.yml
 
-# sudo augtool -s set /files/etc/postfix/main.cf/relayhost '[cengia.id.au]:1025'
-# sudo augtool -s set /files/etc/postfix/main.cf/relay_domains cengia.id.au
-# sudo augtool -s set /files/etc/postfix/main.cf/mydestination "'ryan.cengia.id.au, localhost.localdomain, localhost'"
-# sudo augtool -s set /files/etc/postfix/main.cf/recipient_delimiter -
+    - name: install postfix
+      apt: pkg=postfix state=latest
+
+    - name: Configure home server as Postfix relay host
+      augeas: command="set" path="/files/etc/postfix/main.cf/relayhost" value="[cengia.id.au]:1025"
+      notify: reload postfix
+
+    - name: Relay mail for cengia.id.au domain
+      augeas: command="set" path="/files/etc/postfix/main.cf/relay_domains" value="cengia.id.au"
+      notify: reload postfix
+
+    - name: Deliver mail locally for localhost and ryan.cengia.id.au
+      augeas: command="set" path="/files/etc/postfix/main.cf/mydestination" value="ryan.cengia.id.au, localhost.localdomain, localhost"
+      notify: reload postfix
+
+    - name: Use hyphen as the recipient delimiter (i.e. plus-addressing)
+      augeas: command="set" path="/files/etc/postfix/main.cf/recipient_delimiter" value="-"
+      notify: reload postfix
+
 
   handlers:
 
@@ -81,3 +93,7 @@
     - name: etckeeper post-commit
       command: etckeeper commit "Post-Ansible Changes"
 
+    - name: reload postfix
+      service:
+        name: postfix
+        state: reloaded
