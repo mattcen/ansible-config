@@ -2,14 +2,14 @@
 - hosts: ryan.cengia.id.au
   user: root
   vars:
-    motd_warning: "WARNING: You are connected to ryan.cengia.id.au. Unauthorised access is prohibited!\n"
+    motd_warning: "WARNING: You are connected to {{inventory_hostname}}. Unauthorised access is prohibited!\n"
 
   tasks:
 
-#    - name: etckeeper pre-commit
-#      command: etckeeper commit "Pre-Ansible Changes"
+    #- name: etckeeper pre-commit
+    #  command: etckeeper commit "Pre-Ansible Changes"
 
-    - name: setup a MOTD
+    - name: Setup a MOTD
       copy:
         dest: /etc/motd
         content: "{{ motd_warning }}"
@@ -25,20 +25,20 @@
 
     # Firewall
 
-    - name: install iptables-persistent
+    - name: Install iptables-persistent
       apt: pkg=iptables-persistent state=latest
 
-    - name: create firwall config dir
+    - name: Create firwall config dir
       file: path=/etc/iptables state=directory mode=0755 owner=root
       notify: etckeeper post-commit
 
-    - name: copy in ipv4 firewall rule files
+    - name: Copy in ipv4 firewall rule files
       action: copy src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
       notify:
         - restart iptables-persistent
         - etckeeper post-commit
 
-    - name: copy in ipv6 firewall rule files
+    - name: Copy in ipv6 firewall rule files
       action: copy src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
       notify:
         - restart iptables-persistent
