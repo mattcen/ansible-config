@@ -16,3 +16,17 @@
       augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
 
     - include: roles/common/tasks/localhost_hostname.yml
+
+    - name: Create tmpdir
+      command: mktemp -d /tmp/iptables.XXXXXX
+      register: tmpdir
+    - name: Copy files to server
+      copy: src={{item}} dest={{tmpdir.stdout}}/{{item}}
+      with_items:
+        - item01
+        - item02
+        - item03
+    - name: Assemble files
+      assemble: src={{tmpdir.stdout}} dest=/etc/dstfile.txt
+    - name: Remove tmpdir
+      file: path={{tmpdir.stdout}} state=absent
