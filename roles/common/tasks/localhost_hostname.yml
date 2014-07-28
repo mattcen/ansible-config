@@ -1,4 +1,5 @@
 ---
+# Copyright (C) 2014 Matthew Cengia
 # Note: This task depends on https://github.com/paluh/ansible-augeas and
 # the python-augeas bindings
 - name: Find localhost entry in hosts file

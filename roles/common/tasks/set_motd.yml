@@ -1,3 +1,4 @@
+# Copyright (C) 2014 Matthew Cengia
     - name: Setup a MOTD
       copy:
         dest: /etc/motd

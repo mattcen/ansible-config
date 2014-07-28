@@ -1,5 +1,7 @@
 #!/usr/sbin/ip6tables-apply
 ### This -*-conf-*- file is my template /etc/iptab for new hosts.
+### Copyright (C) 2006 Trent W. Buck
+### Copyright (C) 2014 Matthew Cengia
 ### Ref. http://jengelh.medozas.de/documents/Perfect_Ruleset.pdf
 ### From init, use iptables-restore /etc/iptab (NOT iptables-apply).
 ### Ruleset can and should be loaded BEFORE network ifaces exist.
