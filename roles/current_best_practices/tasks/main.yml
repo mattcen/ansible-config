@@ -1,0 +1,92 @@
+---
+# Copyright (C) 2014 Matthew Cengia
+
+- name: abort if not debian
+  when: ansible_os_family != "Debian"
+  action: debug
+    "msg=We don't support {{ ansible_os_family }}"
+    fail=yes
+
+- name: etckeeper pre-commit
+  command: etckeeper commit "Pre-Ansible Changes"
+  ignore_errors: yes
+
+- name: Update APT package cache
+  apt: update_cache=yes
+
+- name: Install etckeeper
+  apt: pkg=etckeeper state=present
+  notify: etckeeper post-commit
+
+- name: Install unattended-upgrades
+  apt: pkg=unattended-upgrades state=present
+
+- name: Install python-augeas
+  apt: pkg=python-augeas state=present
+
+- name: Install sudo
+  apt: pkg=sudo state=present
+# FIXME: What if there's no '%sudo' entry?
+- name: Find sudo group entry in sudoers
+  augeas: command="match" path="/files/etc/sudoers/*/user[.=\"%sudo\"]"
+  register: sudo_group_entry
+- name: Echo result
+  debug: msg="{{sudo_group_entry.result}}"
+- name: Add sudo group entry if it doesn't already exist
+  augeas: commands='set /files/etc/sudoers/spec[last()+1]/user %sudo
+                    set /files/etc/sudoers/spec[last()]/host_group/host ALL
+                    set /files/etc/sudoers/spec[last()]/host_group/command ALL
+                    set /files/etc/sudoers/spec[last()]/host_group/command/runas_user ALL
+                    set /files/etc/sudoers/spec[last()]/host_group/command/runas_group ALL
+                    set /files/etc/sudoers/spec[last()]/host_group/command/tag NOPASSWD'
+  when: sudo_group_entry.result == []
+- name: Find sudo group entry in sudoers (attempt 2)
+  augeas: command="match" path="/files/etc/sudoers/*/user[.=\"%sudo\"]"
+  register: sudo_group_entry
+- name: Edit sudo group entry if it already exists
+  augeas: commands='set {{sudo_group_entry.result[0].label}}/../host_group/host ALL
+                    set {{sudo_group_entry.result[0].label}}/../host_group/command ALL
+                    set {{sudo_group_entry.result[0].label}}/../host_group/command/runas_user ALL
+                    set {{sudo_group_entry.result[0].label}}/../host_group/command/runas_group ALL
+                    set {{sudo_group_entry.result[0].label}}/../host_group/command/tag NOPASSWD'
+  when: sudo_group_entry.result != []
+
+
+
+# Firewall
+- name: Install iptables-persistent
+  apt: pkg=iptables-persistent state=latest
+- name: Create firwall config dir
+  file: path=/etc/iptables state=directory mode=0755 owner=root group=root
+- name: Install iptables rules
+  template: src=iptables_rules.j2 dest=/etc/iptables/rules.v{{ item }} mode=0744 owner=root group=root
+  with_items:
+    - 4
+    - 6
+  notify:
+    - etckeeper post-commit
+    - restart iptables-persistent
+
+- name: Lock down SSH
+  augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
+  notify:
+    - etckeeper post-commit
+    - restart openssh-server
+
+# Note: This task depends on https://github.com/paluh/ansible-augeas and
+# the python-augeas bindings
+- name: Find localhost entry in hosts file
+  augeas: command="match" path="/files/etc/hosts/*/ipaddr[.=\"127.0.0.1\"]"
+  register: localhost_entry
+- name: Set localhost FQDN entry correctly in hosts file
+  augeas: command="set" path="{{localhost_entry.result[0].label}}/../canonical" value="localhost.localdomain"
+  notify: etckeeper post-commit
+- name: Set localhost alias entry correctly in hosts file
+  augeas: command="set" path="{{localhost_entry.result[0].label}}/../alias" value="localhost"
+  notify: etckeeper post-commit
+
+- name: Setup a MOTD
+  copy:
+    dest: /etc/motd
+    content: "{{ motd_warning }}"
+  notify: etckeeper post-commit
