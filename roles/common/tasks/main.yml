@@ -1,5 +1,21 @@
 ---
 # Copyright (C) 2014 Matthew Cengia
+
+- name: Update APT package cache
+  apt: update_cache=yes
+
+- name: Install python-augeas
+  apt: pkg=python-augeas state=present
+
+- name: Install firewall
+  template: src=iptables_rules.j2 dest=/etc/iptables/rules.v{{ item }}
+  with_items:
+    - 4
+    - 6
+
+- name: Lock down SSH
+  augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
+
 # Note: This task depends on https://github.com/paluh/ansible-augeas and
 # the python-augeas bindings
 - name: Find localhost entry in hosts file
@@ -9,3 +25,8 @@
   augeas: command="set" path="{{localhost_entry.result[0].label}}/../canonical" value="localhost.localdomain"
 - name: Set localhost alias entry correctly in hosts file
   augeas: command="set" path="{{localhost_entry.result[0].label}}/../alias" value="localhost"
+
+- name: Setup a MOTD
+  copy:
+    dest: /etc/motd
+    content: "{{ motd_warning }}"
