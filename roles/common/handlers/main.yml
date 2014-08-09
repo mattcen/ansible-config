@@ -1,0 +1,4 @@
+---
+# Copyright (C) 2014 Matthew Cengia
+  - name: etckeeper post-commit
+    command: etckeeper commit "Post-Ansible Changes"

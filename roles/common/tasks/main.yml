@@ -1,8 +1,16 @@
 ---
 # Copyright (C) 2014 Matthew Cengia
 
+- name: etckeeper pre-commit
+  command: etckeeper commit "Pre-Ansible Changes"
+  ignore_errors: yes
+
 - name: Update APT package cache
   apt: update_cache=yes
+
+- name: Install etckeeper
+  apt: pkg=etckeeper state=present
+  notify: etckeeper post-commit
 
 - name: Install python-augeas
   apt: pkg=python-augeas state=present
@@ -15,18 +23,23 @@
 
 - name: Lock down SSH
   augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
+  notify: etckeeper post-commit
 
 # Note: This task depends on https://github.com/paluh/ansible-augeas and
 # the python-augeas bindings
 - name: Find localhost entry in hosts file
   augeas: command="match" path="/files/etc/hosts/*/ipaddr[.=\"127.0.0.1\"]"
   register: localhost_entry
+  notify: etckeeper post-commit
 - name: Set localhost FQDN entry correctly in hosts file
   augeas: command="set" path="{{localhost_entry.result[0].label}}/../canonical" value="localhost.localdomain"
+  notify: etckeeper post-commit
 - name: Set localhost alias entry correctly in hosts file
   augeas: command="set" path="{{localhost_entry.result[0].label}}/../alias" value="localhost"
+  notify: etckeeper post-commit
 
 - name: Setup a MOTD
   copy:
     dest: /etc/motd
     content: "{{ motd_warning }}"
+  notify: etckeeper post-commit
