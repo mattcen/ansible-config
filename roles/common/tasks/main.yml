@@ -49,7 +49,6 @@
 - name: Find localhost entry in hosts file
   augeas: command="match" path="/files/etc/hosts/*/ipaddr[.=\"127.0.0.1\"]"
   register: localhost_entry
-  notify: etckeeper post-commit
 - name: Set localhost FQDN entry correctly in hosts file
   augeas: command="set" path="{{localhost_entry.result[0].label}}/../canonical" value="localhost.localdomain"
   notify: etckeeper post-commit
