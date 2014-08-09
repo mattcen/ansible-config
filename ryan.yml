@@ -3,47 +3,12 @@
 - hosts: ryan.cengia.id.au
   user: root
   vars:
-    motd_warning: "WARNING: You are connected to {{inventory_hostname}}. Unauthorised access is prohibited!\n"
+    motd_warning: "WARNING: You are connected to {{ansible_fqdn}}. Unauthorised access is prohibited!\n"
     allowed_inbound_ports:
       - ssh
       - smtp
+    relayhost: "[cengia.id.au]:1025"
+    relay_domains: "cengia.id.au"
   roles:
     - common
-
-  tasks:
-
-    # Postfix
-
-    - name: install postfix
-      apt: pkg=postfix state=latest
-
-    - name: Configure home server as Postfix relay host
-      augeas: command="set" path="/files/etc/postfix/main.cf/relayhost" value="[cengia.id.au]:1025"
-      notify:
-        - reload postfix
-        - etckeeper post-commit
-
-    - name: Relay mail for cengia.id.au domain
-      augeas: command="set" path="/files/etc/postfix/main.cf/relay_domains" value="cengia.id.au"
-      notify:
-        - reload postfix
-        - etckeeper post-commit
-
-    - name: Deliver mail locally for localhost and ryan.cengia.id.au
-      augeas: command="set" path="/files/etc/postfix/main.cf/mydestination" value="ryan.cengia.id.au, localhost.localdomain, localhost"
-      notify:
-        - reload postfix
-        - etckeeper post-commit
-
-    - name: Use hyphen as the recipient delimiter (i.e. plus-addressing)
-      augeas: command="set" path="/files/etc/postfix/main.cf/recipient_delimiter" value="-"
-      notify:
-        - reload postfix
-        - etckeeper post-commit
-
-  handlers:
-
-    - name: reload postfix
-      service:
-        name: postfix
-        state: reloaded
+    - postfix_relay

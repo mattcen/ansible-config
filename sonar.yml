@@ -3,7 +3,7 @@
 - hosts: sonar.cyber
   user: root
   vars:
-    motd_warning: "WARNING: You are connected to {{inventory_hostname}}. Unauthorised access is prohibited!\n"
+    motd_warning: "WARNING: You are connected to {{ansible_fqdn}}. Unauthorised access is prohibited!\n"
     allowed_inbound_ports:
       - ssh
   roles:

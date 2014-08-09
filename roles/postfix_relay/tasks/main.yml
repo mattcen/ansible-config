@@ -1,0 +1,28 @@
+---
+# Copyright (C) 2014 Matthew Cengia
+- name: install postfix
+  apt: pkg=postfix state=latest
+
+- name: Configure home server as Postfix relay host
+  augeas: command="set" path="/files/etc/postfix/main.cf/relayhost" value={{relayhost}}
+  notify:
+    - reload postfix
+    - etckeeper post-commit
+
+- name: Relay mail for {{relay_domains}} domain(s)
+  augeas: command="set" path="/files/etc/postfix/main.cf/relay_domains" value={{relay_domains}}
+  notify:
+    - reload postfix
+    - etckeeper post-commit
+
+- name: Deliver mail locally for localhost and {{ansible_fqdn}}
+  augeas: command="set" path="/files/etc/postfix/main.cf/mydestination" value="{{ansible_fqdn}}, localhost.localdomain, localhost"
+  notify:
+    - reload postfix
+    - etckeeper post-commit
+
+- name: Use hyphen as the recipient delimiter (i.e. plus-addressing)
+  augeas: command="set" path="/files/etc/postfix/main.cf/recipient_delimiter" value="-"
+  notify:
+    - reload postfix
+    - etckeeper post-commit

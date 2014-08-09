@@ -1,0 +1,6 @@
+---
+# Copyright (C) 2014 Matthew Cengia
+- name: reload postfix
+  service:
+    name: postfix
+    state: reloaded
