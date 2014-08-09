@@ -1,6 +1,12 @@
 ---
 # Copyright (C) 2014 Matthew Cengia
 
+- name: abort if not debian
+  when: ansible_os_family != "Debian"
+  action: debug
+    "msg=We don't support {{ ansible_os_family }}"
+    fail=yes
+
 - name: etckeeper pre-commit
   command: etckeeper commit "Pre-Ansible Changes"
   ignore_errors: yes
