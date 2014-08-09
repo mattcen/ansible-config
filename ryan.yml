@@ -4,81 +4,44 @@
   user: root
   vars:
     motd_warning: "WARNING: You are connected to {{inventory_hostname}}. Unauthorised access is prohibited!\n"
+    allowed_inbound_ports:
+      - ssh
+      - smtp
+  roles:
+    - common
 
   tasks:
 
-    - include: roles/common/tasks/set_motd.yml motd_warning={{motd_warning}}
-
-    - name: Update APT package cache
-      apt: update_cache=yes
-
-    #- name: Upgrade APT to the lastest packages
-    #  apt: upgrade=safe
-
-    - name: Install unattended-upgrades
-      apt: pkg=unattended-upgrades state=present
-
-    - name: Install python-augeas
-      apt: pkg=python-augeas state=latest
-
-    # Firewall
-
-    - name: Install iptables-persistent
-      apt: pkg=iptables-persistent state=latest
-
-    - name: Create firwall config dir
-      file: path=/etc/iptables state=directory mode=0755 owner=root
-
-    - name: Copy in ipv4 firewall rule files
-      action: copy src=ryan-files/rules.v4 dest=/etc/iptables/rules.v4 mode=0744
-      notify: restart iptables-persistent
-
-    - name: Copy in ipv6 firewall rule files
-      action: copy src=ryan-files/rules.v6 dest=/etc/iptables/rules.v6 mode=0744
-      notify: restart iptables-persistent
-
-    # SSH
-
-    - name: Lock down SSH
-      augeas: command="set" path="/files/etc/ssh/sshd_config/PermitRootLogin" value="without-password"
-      notify: restart openssh-server
-
     # Postfix
-
-    # Correctly set localhost entry in /etc/hosts
-    - include: roles/common/tasks/localhost_hostname.yml
 
     - name: install postfix
       apt: pkg=postfix state=latest
 
     - name: Configure home server as Postfix relay host
       augeas: command="set" path="/files/etc/postfix/main.cf/relayhost" value="[cengia.id.au]:1025"
-      notify: reload postfix
+      notify:
+        - reload postfix
+        - etckeeper post-commit
 
     - name: Relay mail for cengia.id.au domain
       augeas: command="set" path="/files/etc/postfix/main.cf/relay_domains" value="cengia.id.au"
-      notify: reload postfix
+      notify:
+        - reload postfix
+        - etckeeper post-commit
 
     - name: Deliver mail locally for localhost and ryan.cengia.id.au
       augeas: command="set" path="/files/etc/postfix/main.cf/mydestination" value="ryan.cengia.id.au, localhost.localdomain, localhost"
-      notify: reload postfix
+      notify:
+        - reload postfix
+        - etckeeper post-commit
 
     - name: Use hyphen as the recipient delimiter (i.e. plus-addressing)
       augeas: command="set" path="/files/etc/postfix/main.cf/recipient_delimiter" value="-"
-      notify: reload postfix
-
+      notify:
+        - reload postfix
+        - etckeeper post-commit
 
   handlers:
-
-    - name: restart iptables-persistent
-      service:
-        name: iptables-persistent
-        state: restarted
-
-    - name: restart openssh-server
-      service:
-        name: openssh-sever
-        state: restarted
 
     - name: reload postfix
       service:

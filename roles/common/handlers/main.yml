@@ -1,4 +1,14 @@
 ---
 # Copyright (C) 2014 Matthew Cengia
-  - name: etckeeper post-commit
-    command: etckeeper commit "Post-Ansible Changes"
+- name: etckeeper post-commit
+  command: etckeeper commit "Post-Ansible Changes"
+
+- name: restart iptables-persistent
+  service:
+    name: iptables-persistent
+    state: restarted
+
+- name: restart openssh-server
+  service:
+    name: openssh-sever
+    state: restarted
